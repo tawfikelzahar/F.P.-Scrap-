@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم هوالك المنتج التام - Spin On Filters</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --navy: #0d2137;
+  --navy-light: #1a3a5c;
+  --navy-mid: #2c5282;
+  --gold: #c9a227;
+  --gold-light: #e8c547;
+  --gold-pale: #fdf6dc;
+  --white: #ffffff;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --text: #0d2137;
+  --text-muted: #5a7288;
+  --border: rgba(13,33,55,0.12);
+  --red: #d32f2f;
+  --red-bg: #fff0f0;
+  --green: #1b7a3e;
+  --green-bg: #edf7f1;
+  --amber: #b45309;
+  --amber-bg: #fffbeb;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', 'Cairo', Tahoma, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* HEADER */
+.header {
+  background: var(--navy);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 68px; border-bottom: 3px solid var(--gold);
+}
+.header-brand { display: flex; align-items: center; gap: 14px; }
+.header-logo {
+  width: 42px; height: 42px; background: var(--gold);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--navy); font-weight: 700;
+}
+.header-title { color: var(--white); }
+.header-title h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
+.header-title p { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.lang-btn {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+  color: var(--white); padding: 6px 16px; border-radius: 20px;
+  cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.2s;
+}
+.lang-btn:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.status-badge {
+  background: rgba(201,162,39,0.2); border: 1px solid var(--gold);
+  color: var(--gold-light); padding: 5px 12px; border-radius: 20px; font-size: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.dot-live { width: 7px; height: 7px; background: var(--gold-light); border-radius: 50%; animation: blink 1.4s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* CONTROLS BAR */
+.controls-bar {
+  background: var(--navy-light); padding: 10px 28px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ctrl-group { display: flex; align-items: center; gap: 8px; }
+.ctrl-label { color: rgba(255,255,255,0.6); font-size: 12px; }
+.ctrl-select {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+  color: var(--white); padding: 5px 10px; border-radius: 6px;
+  font-size: 13px; font-family: inherit; cursor: pointer; outline: none; min-width: 120px;
+}
+.ctrl-select option { background: var(--navy); color: var(--white); }
+.ctrl-select:hover { border-color: var(--gold); }
+.refresh-btn {
+  background: var(--gold); color: var(--navy); border: none;
+  padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;
+  font-family: inherit; font-weight: 600; margin-right: auto; transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.refresh-btn:hover { background: var(--gold-light); }
+.last-updated { color: rgba(255,255,255,0.45); font-size: 11px; }
+
+/* MAIN */
+.main { padding: 24px 28px; max-width: 1400px; margin: 0 auto; }
+
+/* KPI CARDS */
+.kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
+.kpi-card {
+  background: var(--card); border-radius: 10px;
+  padding: 16px 18px; border: 1px solid var(--border);
+  border-top: 3px solid var(--gold); position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; right: 0;
+  width: 70px; height: 70px; border-radius: 0 0 0 100%;
+  background: rgba(201,162,39,0.06);
+}
+.kpi-icon { font-size: 22px; margin-bottom: 8px; }
+.kpi-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: var(--navy); line-height: 1; }
+.kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.kpi-trend { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; margin-top: 6px; padding: 2px 8px; border-radius: 12px; }
+.trend-up { background: var(--red-bg); color: var(--red); }
+.trend-down { background: var(--green-bg); color: var(--green); }
+.trend-neutral { background: var(--amber-bg); color: var(--amber); }
+
+/* CHARTS GRID */
+.charts-row { display: grid; grid-template-columns: 1.7fr 1fr; gap: 18px; margin-bottom: 18px; }
+.charts-row2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+.chart-card {
+  background: var(--card); border-radius: 10px;
+  padding: 20px 20px 16px; border: 1px solid var(--border);
+}
+.chart-card.full { grid-column: 1 / -1; }
+.chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.chart-title { font-size: 14px; font-weight: 600; color: var(--navy); }
+.chart-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.chart-badge {
+  font-size: 11px; padding: 3px 10px; border-radius: 12px;
+  background: var(--gold-pale); color: var(--amber); border: 1px solid rgba(201,162,39,0.3);
+}
+
+/* TABLE SECTION */
+.table-section { background: var(--card); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 18px; }
+.table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.table-title { font-size: 14px; font-weight: 600; color: var(--navy); }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--navy); }
+thead th { padding: 10px 16px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); text-align: right; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:hover { background: rgba(13,33,55,0.03); }
+tbody tr:last-child { border-bottom: none; }
+tbody td { padding: 10px 16px; font-size: 13px; color: var(--text); }
+.rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 700; }
+.r1 { background: var(--gold); color: var(--navy); }
+.r2 { background: #C0C0C0; color: #333; }
+.r3 { background: #CD7F32; color: #fff; }
+.rn { background: rgba(13,33,55,0.1); color: var(--text-muted); }
+.defect-bar-bg { background: rgba(211,47,47,0.1); border-radius: 4px; height: 8px; overflow: hidden; }
+.defect-bar { background: var(--red); height: 8px; border-radius: 4px; }
+.pct-tag { font-size: 11px; color: var(--text-muted); }
+
+/* INSIGHTS */
+.insights-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 18px; }
+.insight-card {
+  background: var(--card); border-radius: 10px; padding: 16px 18px;
+  border: 1px solid var(--border); display: flex; gap: 14px; align-items: flex-start;
+}
+.insight-icon {
+  width: 40px; height: 40px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.insight-icon.danger { background: var(--red-bg); }
+.insight-icon.success { background: var(--green-bg); }
+.insight-icon.warning { background: var(--amber-bg); }
+.insight-icon.info { background: #e8f0fe; }
+.insight-text h4 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.insight-text p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+/* FOOTER */
+.footer { background: var(--navy); padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--gold); }
+.footer-left { color: rgba(255,255,255,0.5); font-size: 12px; }
+.footer-right { color: var(--gold); font-size: 12px; font-weight: 600; }
+.data-source { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 2px; }
+
+/* LOADING */
+.loading-overlay {
+  position: fixed; inset: 0; background: var(--navy);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 9999; gap: 18px;
+}
+.loading-logo { font-size: 48px; }
+.loading-bar { width: 240px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+.loading-fill { height: 100%; background: var(--gold); border-radius: 2px; animation: load 2s ease forwards; }
+@keyframes load { 0%{width:0} 100%{width:100%} }
+.loading-text { color: rgba(255,255,255,0.7); font-size: 14px; }
+
+/* ERROR STATE */
+.error-state { background: var(--red-bg); border: 1px solid rgba(211,47,47,0.3); border-radius: 10px; padding: 20px 24px; margin: 20px 28px; display: none; }
+.error-state h3 { color: var(--red); font-size: 15px; margin-bottom: 8px; }
+.error-state p { color: var(--text-muted); font-size: 13px; }
+
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+  .charts-row2 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row2 { grid-template-columns: 1fr; }
+  .insights-grid { grid-template-columns: 1fr; }
+  .main { padding: 16px; }
+  .controls-bar { padding: 10px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo">🏭</div>
+  <div class="loading-text" id="loadingText">جاري تحميل البيانات... | Loading data...</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<!-- ERROR STATE -->
+<div class="error-state" id="errorState">
+  <h3>⚠️ خطأ في تحميل البيانات | Data Load Error</h3>
+  <p id="errorMsg">تأكد من أن الـ Google Sheet متاح للعموم ومشارك بصلاحية Viewer.</p>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">SF</div>
+    <div class="header-title">
+      <h1 id="h-title">لوحة تحكم هوالك المنتج التام | Final Product Defects Dashboard</h1>
+      <p id="h-subtitle">Spin On Filters — فلاتر السيارات</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-badge"><div class="dot-live"></div><span id="h-live">مباشر</span></div>
+    <button class="lang-btn" onclick="toggleLang()" id="langBtn">English</button>
+  </div>
+</div>
+
+<!-- CONTROLS BAR -->
+<div class="controls-bar">
+  <div class="ctrl-group">
+    <span class="ctrl-label" id="c-brand">الماركة</span>
+    <select class="ctrl-select" id="filterBrand" onchange="applyFilters()">
+      <option value="all">الكل | All</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label" id="c-deftype">نوع العيب</span>
+    <select class="ctrl-select" id="filterDefect" onchange="applyFilters()">
+      <option value="all">الكل | All</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label" id="c-month">الشهر</span>
+    <select class="ctrl-select" id="filterMonth" onchange="applyFilters()">
+      <option value="all">الكل | All</option>
+    </select>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label" id="c-type">نوع الفلتر</span>
+    <select class="ctrl-select" id="filterType" onchange="applyFilters()">
+      <option value="all">الكل | All</option>
+      <option value="Oil filter">زيت | Oil</option>
+      <option value="Fuel filter">وقود | Fuel</option>
+    </select>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">🔄 <span id="c-refresh">تحديث</span></button>
+  <span class="last-updated" id="lastUpdated"></span>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="mainContent" style="display:none">
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon">🏭</div>
+      <div class="kpi-label" id="k1-label">إجمالي الإنتاج</div>
+      <div class="kpi-value" id="k1-value">—</div>
+      <div class="kpi-sub" id="k1-sub">وحدة مصنعة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">⚠️</div>
+      <div class="kpi-label" id="k2-label">إجمالي العيوب</div>
+      <div class="kpi-value" id="k2-value">—</div>
+      <div class="kpi-sub" id="k2-sub">وحدة معيبة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-label" id="k3-label">نسبة العيب</div>
+      <div class="kpi-value" id="k3-value">—</div>
+      <div class="kpi-trend trend-up" id="k3-trend">⬆ مرتفعة</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-label" id="k4-label">First Pass Yield</div>
+      <div class="kpi-value" id="k4-value">—</div>
+      <div class="kpi-trend trend-down" id="k4-trend">⬇ تحت الهدف</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">🎯</div>
+      <div class="kpi-label" id="k5-label">DPMO</div>
+      <div class="kpi-value" id="k5-value">—</div>
+      <div class="kpi-sub" id="k5-sub">عيب / مليون وحدة</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 1: Monthly trend + Brand donut -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title" id="ch1-title">اتجاه الإنتاج والعيوب الشهري</div>
+          <div class="chart-subtitle" id="ch1-sub">يناير → مارس 2026</div>
+        </div>
+        <span class="chart-badge" id="ch1-badge">شهري</span>
+      </div>
+      <div style="position:relative;height:260px">
+        <canvas id="monthlyChart" role="img" aria-label="Monthly production and defects trend chart">Monthly production and defects January through March 2026.</canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title" id="ch2-title">توزيع العيوب بالماركة</div>
+          <div class="chart-subtitle" id="ch2-sub">نسبة مساهمة كل ماركة</div>
+        </div>
+      </div>
+      <div id="donutLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;font-size:12px;"></div>
+      <div style="position:relative;height:210px">
+        <canvas id="brandChart" role="img" aria-label="Brand defect distribution donut chart">Defect distribution by brand.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2: Pareto -->
+  <div class="chart-card" style="margin-bottom:18px">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title" id="ch3-title">تحليل باريتو — أنواع العيوب</div>
+        <div class="chart-subtitle" id="ch3-sub">80% من العيوب تأتي من أقل عدد من الأسباب — قانون باريتو</div>
+      </div>
+      <span class="chart-badge">Pareto 80/20</span>
+    </div>
+    <div style="position:relative;height:300px">
+      <canvas id="paretoChart" role="img" aria-label="Pareto chart of defect types">Pareto analysis of defect types showing cumulative percentage.</canvas>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 3: Defect category + Filter type -->
+  <div class="charts-row2">
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title" id="ch4-title">فئات العيوب</div>
+      </div>
+      <div style="position:relative;height:220px">
+        <canvas id="categoryChart" role="img" aria-label="Defect categories bar chart">Defect categories breakdown.</canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title" id="ch5-title">أعلى 10 أكواد فلاتر في العيوب</div>
+      </div>
+      <div style="position:relative;height:220px">
+        <canvas id="filterCodeChart" role="img" aria-label="Top 10 filter codes by defects">Top 10 filter codes with highest defect counts.</canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title" id="ch6-title">نسبة العيب اليومية</div>
+      </div>
+      <div style="position:relative;height:220px">
+        <canvas id="dailyRateChart" role="img" aria-label="Daily defect rate trend">Daily defect rate over time.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARETO TABLE -->
+  <div class="table-section">
+    <div class="table-header">
+      <div class="table-title" id="tbl-title">📋 تفاصيل العيوب — Pareto Table</div>
+      <span class="chart-badge" id="tbl-badge">Top عيوب</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="paretoTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th id="th-type">نوع العيب</th>
+            <th id="th-count">العدد</th>
+            <th id="th-pct">النسبة</th>
+            <th id="th-cum">تراكمي</th>
+            <th id="th-bar">التوزيع</th>
+          </tr>
+        </thead>
+        <tbody id="paretoTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="insights-grid">
+    <div class="insight-card">
+      <div class="insight-icon danger">🚨</div>
+      <div class="insight-text">
+        <h4 id="ins1-title">أعلى عيب — الدثرة</h4>
+        <p id="ins1-text">الدثرة تمثل 57.67% من إجمالي العيوب (7,660 وحدة). تحتاج تحقيق فوري في عملية التجميع وجودة المادة المستخدمة.</p>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon warning">⚡</div>
+      <div class="insight-text">
+        <h4 id="ins2-title">مناطق حرجة</h4>
+        <p id="ins2-text">3 عيوب فقط (دثرة + مياة + علام صاج) تمثل 79% من إجمالي العيوب — تطبيق باريتو يوجه الجهد للمكان الصح.</p>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon success">📈</div>
+      <div class="insight-text">
+        <h4 id="ins3-title">أداء الماركات</h4>
+        <p id="ins3-text">Royal أفضل أداء بنسبة عيب 2.03%، بينما Moller لديها أعلى نسبة 4.22% — تستحق مراجعة شاملة لعمليات التصنيع.</p>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon info">🎯</div>
+      <div class="insight-text">
+        <h4 id="ins4-title">FPY والسيجما</h4>
+        <p id="ins4-text">FPY الحالي يعني أن كل 100 وحدة تنتجها، يوجد منتجان معيبان تقريباً. الهدف الموصى به في السيارات ≥ 98.5%.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div>
+    <div class="footer-left" id="ft-left">لوحة تحكم هوالك المنتج التام — Spin On Filters Dashboard</div>
+    <div class="data-source" id="ft-source">📊 مصدر البيانات: Google Sheets — يناير → مارس 2026</div>
+  </div>
+  <div class="footer-right">⚙️ Tawfik Quality Engineering System</div>
+</div>
+
+<script>
+const SHEET_ID = '1d5tyhmrAmMfZYo9mxn_bcjR3h9zDNofQLWI7nOgvZ6I';
+const PROD_SHEET = 'الإنتاج اليومي';
+const DEF_SHEET = 'العيوب اليومية';
+
+let lang = 'ar';
+let allProduction = [];
+let allDefects = [];
+let charts = {};
+
+const T = {
+  ar: {
+    title: 'لوحة تحكم هوالك المنتج التام',
+    subtitle: 'Spin On Filters — فلاتر السيارات',
+    live: 'مباشر',
+    langBtn: 'English',
+    cBrand: 'الماركة',
+    cDeftype: 'نوع العيب',
+    cMonth: 'الشهر',
+    cType: 'نوع الفلتر',
+    cRefresh: 'تحديث',
+    k1: 'إجمالي الإنتاج', k1s: 'وحدة مصنعة',
+    k2: 'إجمالي العيوب', k2s: 'وحدة معيبة',
+    k3: 'نسبة العيب',
+    k4: 'First Pass Yield',
+    k5: 'DPMO', k5s: 'عيب / مليون وحدة',
+    ch1: 'اتجاه الإنتاج والعيوب الشهري', ch1s: 'يناير → مارس 2026', ch1b: 'شهري',
+    ch2: 'توزيع العيوب بالماركة', ch2s: 'نسبة مساهمة كل ماركة',
+    ch3: 'تحليل باريتو — أنواع العيوب', ch3s: '80% من العيوب تأتي من أقل عدد من الأسباب',
+    ch4: 'فئات العيوب',
+    ch5: 'أعلى 10 أكواد فلاتر في العيوب',
+    ch6: 'نسبة العيب اليومية',
+    tblTitle: '📋 تفاصيل العيوب — Pareto Table', tblBadge: 'Top عيوب',
+    thType: 'نوع العيب', thCount: 'العدد', thPct: 'النسبة', thCum: 'تراكمي', thBar: 'التوزيع',
+    ins1t: 'أعلى عيب — الدثرة', ins1: 'الدثرة تمثل 57.67% من إجمالي العيوب (7,660 وحدة). تحتاج تحقيق فوري.',
+    ins2t: 'مناطق حرجة', ins2: '3 عيوب فقط تمثل 79% من الإجمالي — باريتو يوجه الجهد للمكان الصح.',
+    ins3t: 'أداء الماركات', ins3: 'Royal أفضل أداء بنسبة 2.03%، بينما Moller لديها أعلى نسبة 4.22%.',
+    ins4t: 'FPY والسيجما', ins4: 'FPY الحالي يعني 2 وحدة معيبة من كل 100. الهدف في السيارات ≥ 98.5%.',
+    months: ['يناير','فبراير','مارس','أبريل','مايو'],
+    production: 'الإنتاج', defects: 'العيوب', defectRate: 'نسبة العيب',
+    cumPct: 'النسبة التراكمية'
+  },
+  en: {
+    title: 'Final Product Defects Dashboard',
+    subtitle: 'Spin On Filters — Automotive Filters',
+    live: 'Live',
+    langBtn: 'عربي',
+    cBrand: 'Brand',
+    cDeftype: 'Defect Type',
+    cMonth: 'Month',
+    cType: 'Filter Type',
+    cRefresh: 'Refresh',
+    k1: 'Total Production', k1s: 'units produced',
+    k2: 'Total Defects', k2s: 'defective units',
+    k3: 'Defect Rate',
+    k4: 'First Pass Yield',
+    k5: 'DPMO', k5s: 'defects per million units',
+    ch1: 'Monthly Production & Defects Trend', ch1s: 'January → March 2026', ch1b: 'Monthly',
+    ch2: 'Defects by Brand', ch2s: 'Brand contribution percentage',
+    ch3: 'Pareto Analysis — Defect Types', ch3s: '80% of defects come from few causes',
+    ch4: 'Defect Categories',
+    ch5: 'Top 10 Filter Codes by Defects',
+    ch6: 'Daily Defect Rate',
+    tblTitle: '📋 Defect Details — Pareto Table', tblBadge: 'Top Defects',
+    thType: 'Defect Type', thCount: 'Count', thPct: 'Percentage', thCum: 'Cumulative', thBar: 'Distribution',
+    ins1t: 'Top Defect — Gasket (Dathira)', ins1: 'Gasket defects account for 57.67% of total defects (7,660 units). Requires immediate investigation.',
+    ins2t: 'Critical Areas', ins2: 'Just 3 defect types represent 79% of total — Pareto focuses effort where it matters.',
+    ins3t: 'Brand Performance', ins3: 'Royal has the best rate at 2.03%, while Moller has the highest at 4.22%.',
+    ins4t: 'FPY & Sigma', ins4: 'Current FPY means ~2 defective units per 100 produced. Automotive target ≥ 98.5%.',
+    months: ['Jan','Feb','Mar','Apr','May'],
+    production: 'Production', defects: 'Defects', defectRate: 'Defect Rate',
+    cumPct: 'Cumulative %'
+  }
+};
+
+function t(key) { return T[lang][key] || key; }
+
+function toggleLang() {
+  lang = lang === 'ar' ? 'en' : 'ar';
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  updateLabels();
+  renderAllCharts();
+}
+
+function updateLabels() {
+  const ids = {
+    'h-title': 'title', 'h-subtitle': 'subtitle', 'h-live': 'live', 'langBtn': 'langBtn',
+    'c-brand': 'cBrand', 'c-deftype': 'cDeftype', 'c-month': 'cMonth', 'c-type': 'cType',
+    'c-refresh': 'cRefresh',
+    'k1-label': 'k1', 'k1-sub': 'k1s', 'k2-label': 'k2', 'k2-sub': 'k2s',
+    'k3-label': 'k3', 'k4-label': 'k4', 'k5-label': 'k5', 'k5-sub': 'k5s',
+    'ch1-title': 'ch1', 'ch1-sub': 'ch1s', 'ch1-badge': 'ch1b',
+    'ch2-title': 'ch2', 'ch2-sub': 'ch2s',
+    'ch3-title': 'ch3', 'ch3-sub': 'ch3s',
+    'ch4-title': 'ch4', 'ch5-title': 'ch5', 'ch6-title': 'ch6',
+    'tbl-title': 'tblTitle', 'tbl-badge': 'tblBadge',
+    'th-type': 'thType', 'th-count': 'thCount', 'th-pct': 'thPct', 'th-cum': 'thCum', 'th-bar': 'thBar',
+    'ins1-title': 'ins1t', 'ins1-text': 'ins1',
+    'ins2-title': 'ins2t', 'ins2-text': 'ins2',
+    'ins3-title': 'ins3t', 'ins3-text': 'ins3',
+    'ins4-title': 'ins4t', 'ins4-text': 'ins4',
+  };
+  for (const [id, key] of Object.entries(ids)) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(key);
+  }
+}
+
+function parseNum(s) {
+  if (!s || s === '') return 0;
+  s = s.toString().replace(/٬/g, '').replace(/٫/g, '.').replace(/%/g, '').trim();
+  return parseFloat(s) || 0;
+}
+
+function parseDate(s) {
+  if (!s) return null;
+  const d = new Date(s);
+  if (!isNaN(d)) return d;
+  return null;
+}
+
+async function fetchSheet(sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('Network response was not ok');
+  const text = await resp.text();
+  return parseCSV(text);
+}
+
+function parseCSV(text) {
+  const lines = text.split('\n');
+  const rows = lines.map(line => {
+    const result = [];
+    let cur = ''; let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '"') { inQ = !inQ; continue; }
+      if (line[i] === ',' && !inQ) { result.push(cur.trim()); cur = ''; continue; }
+      cur += line[i];
+    }
+    result.push(cur.trim());
+    return result;
+  });
+  if (rows.length < 2) return [];
+  const headers = rows[1];
+  const data = [];
+  for (let i = 2; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row[0] || row[0] === '') continue;
+    const obj = {};
+    headers.forEach((h, j) => { obj[h] = row[j] || ''; });
+    data.push(obj);
+  }
+  return data;
+}
+
+async function loadData() {
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  document.getElementById('mainContent').style.display = 'none';
+  document.getElementById('errorState').style.display = 'none';
+  try {
+    const [prodRaw, defRaw] = await Promise.all([fetchSheet(PROD_SHEET), fetchSheet(DEF_SHEET)]);
+    allProduction = prodRaw.filter(r => r['Date'] && r['Date'] !== 'Date' && !r['Date'].includes('18991230'));
+    allDefects = defRaw.filter(r => r['Date'] && r['Date'] !== 'Date' && !r['Date'].includes('18991230'));
+    populateFilters();
+    applyFilters();
+    document.getElementById('lastUpdated').textContent = lang === 'ar'
+      ? `آخر تحديث: ${new Date().toLocaleString('ar-EG')}`
+      : `Last updated: ${new Date().toLocaleString()}`;
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+  } catch (err) {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    document.getElementById('errorMsg').textContent = `Error: ${err.message}. تأكد من أن الشيت مشارك بصلاحية "Anyone with the link can view".`;
+    document.getElementById('mainContent').style.display = 'block';
+  }
+}
+
+function populateFilters() {
+  const brands = [...new Set(allDefects.map(r => r['Brand']).filter(Boolean))].sort();
+  const types = [...new Set(allDefects.map(r => r['Defect_Type']).filter(Boolean))].sort();
+  const months = [...new Set(allProduction.map(r => {
+    const d = parseDate(r['Date']);
+    return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` : null;
+  }).filter(Boolean))].sort();
+
+  const brandSel = document.getElementById('filterBrand');
+  brandSel.innerHTML = `<option value="all">${lang==='ar'?'الكل':'All'}</option>`;
+  brands.forEach(b => { brandSel.innerHTML += `<option value="${b}">${b}</option>`; });
+
+  const defSel = document.getElementById('filterDefect');
+  defSel.innerHTML = `<option value="all">${lang==='ar'?'الكل':'All'}</option>`;
+  types.forEach(t => { defSel.innerHTML += `<option value="${t}">${t}</option>`; });
+
+  const monthSel = document.getElementById('filterMonth');
+  monthSel.innerHTML = `<option value="all">${lang==='ar'?'الكل':'All'}</option>`;
+  const monthNames = {
+    '2026-01': lang==='ar'?'يناير 2026':'Jan 2026',
+    '2026-02': lang==='ar'?'فبراير 2026':'Feb 2026',
+    '2026-03': lang==='ar'?'مارس 2026':'Mar 2026',
+    '2026-04': lang==='ar'?'أبريل 2026':'Apr 2026'
+  };
+  months.forEach(m => { monthSel.innerHTML += `<option value="${m}">${monthNames[m]||m}</option>`; });
+}
+
+function applyFilters() {
+  const brand = document.getElementById('filterBrand').value;
+  const defType = document.getElementById('filterDefect').value;
+  const month = document.getElementById('filterMonth').value;
+  const type = document.getElementById('filterType').value;
+
+  let defects = allDefects.filter(r => {
+    if (brand !== 'all' && r['Brand'] !== brand) return false;
+    if (defType !== 'all' && r['Defect_Type'] !== defType) return false;
+    if (month !== 'all') {
+      const d = parseDate(r['Date']);
+      if (!d) return false;
+      const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      if (m !== month) return false;
+    }
+    return true;
+  });
+
+  let production = allProduction.filter(r => {
+    if (brand !== 'all' && r['Brand'] !== brand) return false;
+    if (month !== 'all') {
+      const d = parseDate(r['Date']);
+      if (!d) return false;
+      const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      if (m !== month) return false;
+    }
+    if (type !== 'all' && r['Unnamed: 3'] !== type) return false;
+    return true;
+  });
+
+  renderDashboard(production, defects);
+}
+
+function renderDashboard(production, defects) {
+  const totalProduced = production.reduce((s, r) => s + parseNum(r['Produced_Quantity']), 0);
+  const totalDefects = defects.reduce((s, r) => s + parseNum(r['Defect_Quantity']), 0);
+  const defectRate = totalProduced > 0 ? (totalDefects / totalProduced * 100) : 0;
+  const fpy = 100 - defectRate;
+  const dpmo = totalProduced > 0 ? Math.round(totalDefects / totalProduced * 1000000) : 0;
+
+  document.getElementById('k1-value').textContent = totalProduced.toLocaleString();
+  document.getElementById('k2-value').textContent = totalDefects.toLocaleString();
+  document.getElementById('k3-value').textContent = defectRate.toFixed(2) + '%';
+  document.getElementById('k4-value').textContent = fpy.toFixed(2) + '%';
+  document.getElementById('k5-value').textContent = dpmo.toLocaleString();
+
+  const k3t = document.getElementById('k3-trend');
+  if (defectRate > 3) { k3t.className='kpi-trend trend-up'; k3t.textContent='⬆ ' + (lang==='ar'?'مرتفعة':'High'); }
+  else if (defectRate > 2) { k3t.className='kpi-trend trend-neutral'; k3t.textContent='⚡ ' + (lang==='ar'?'متوسطة':'Medium'); }
+  else { k3t.className='kpi-trend trend-down'; k3t.textContent='⬇ ' + (lang==='ar'?'منخفضة':'Low'); }
+
+  const k4t = document.getElementById('k4-trend');
+  if (fpy >= 98.5) { k4t.className='kpi-trend trend-down'; k4t.textContent='✅ ' + (lang==='ar'?'فوق الهدف':'Above Target'); }
+  else { k4t.className='kpi-trend trend-up'; k4t.textContent='⬇ ' + (lang==='ar'?'تحت الهدف':'Below Target'); }
+
+  renderAllCharts(production, defects, totalProduced, totalDefects);
+  renderParetoTable(defects);
+}
+
+function renderAllCharts(production, defects, totalProduced, totalDefects) {
+  production = production || allProduction;
+  defects = defects || allDefects;
+  totalProduced = totalProduced || production.reduce((s,r)=>s+parseNum(r['Produced_Quantity']),0);
+  totalDefects = totalDefects || defects.reduce((s,r)=>s+parseNum(r['Defect_Quantity']),0);
+
+  renderMonthlyChart(production, defects);
+  renderBrandChart(defects, totalDefects);
+  renderParetoChart(defects, totalDefects);
+  renderCategoryChart(defects, totalDefects);
+  renderFilterCodeChart(defects);
+  renderDailyRateChart(defects);
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function renderMonthlyChart(production, defects) {
+  destroyChart('monthly');
+  const monthlyProd = {};
+  const monthlyDef = {};
+  production.forEach(r => {
+    const d = parseDate(r['Date']); if (!d) return;
+    const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthlyProd[m] = (monthlyProd[m]||0) + parseNum(r['Produced_Quantity']);
+  });
+  defects.forEach(r => {
+    const d = parseDate(r['Date']); if (!d) return;
+    const m = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthlyDef[m] = (monthlyDef[m]||0) + parseNum(r['Defect_Quantity']);
+  });
+  const months = Object.keys(monthlyProd).sort();
+  const mnLabels = {'2026-01':t('months')[0],'2026-02':t('months')[1],'2026-03':t('months')[2],'2026-04':t('months')[3]};
+  charts['monthly'] = new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+      labels: months.map(m => mnLabels[m]||m),
+      datasets: [
+        { label: t('production'), data: months.map(m=>monthlyProd[m]||0), backgroundColor: 'rgba(44,82,130,0.7)', borderColor: '#2c5282', borderWidth: 1.5, yAxisID: 'y' },
+        { label: t('defects'), data: months.map(m=>monthlyDef[m]||0), backgroundColor: 'rgba(211,47,47,0.75)', borderColor: '#d32f2f', borderWidth: 1.5, yAxisID: 'y', type: 'bar' },
+        { label: t('defectRate')+'%', data: months.map(m => monthlyProd[m]>0 ? +(monthlyDef[m]||0)/monthlyProd[m]*100 : 0), borderColor: '#c9a227', borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: '#c9a227', type: 'line', yAxisID: 'y2', tension: 0.3, fill: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { position: 'right', grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { callback: v => v.toLocaleString(), font: { size: 11 } } },
+        y2: { position: 'left', max: 10, grid: { display: false }, ticks: { callback: v => v.toFixed(1)+'%', font: { size: 11 } } },
+        x: { ticks: { font: { size: 12 } } }
+      }
+    }
+  });
+}
+
+function renderBrandChart(defects, totalDefects) {
+  destroyChart('brand');
+  const brandDef = {};
+  defects.forEach(r => {
+    const b = r['Brand']||'Other';
+    brandDef[b] = (brandDef[b]||0) + parseNum(r['Defect_Quantity']);
+  });
+  const sorted = Object.entries(brandDef).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const COLORS = ['#2c5282','#c9a227','#d32f2f','#1b7a3e','#7b3f9c','#b45309'];
+  const legend = document.getElementById('donutLegend');
+  legend.innerHTML = sorted.map(([b,v],i) =>
+    `<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:${COLORS[i]};flex-shrink:0"></span><span style="font-size:11px;color:#5a7288">${b} ${totalDefects>0?(v/totalDefects*100).toFixed(1)+'%':''}</span></span>`
+  ).join('');
+  charts['brand'] = new Chart(document.getElementById('brandChart'), {
+    type: 'doughnut',
+    data: { labels: sorted.map(([b])=>b), datasets: [{ data: sorted.map(([,v])=>v), backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw.toLocaleString()} (${totalDefects>0?(ctx.raw/totalDefects*100).toFixed(1)+'%':''})` } } }, cutout: '65%' }
+  });
+}
+
+function renderParetoChart(defects, totalDefects) {
+  destroyChart('pareto');
+  const typeDef = {};
+  defects.forEach(r => {
+    const t = r['Defect_Type']||'Other';
+    typeDef[t] = (typeDef[t]||0) + parseNum(r['Defect_Quantity']);
+  });
+  const sorted = Object.entries(typeDef).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  let cum = 0;
+  const cumPcts = sorted.map(([,v]) => { cum += v; return totalDefects>0 ? +(cum/totalDefects*100).toFixed(1) : 0; });
+  charts['pareto'] = new Chart(document.getElementById('paretoChart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(([t])=>t),
+      datasets: [
+        { label: t('defects'), data: sorted.map(([,v])=>v), backgroundColor: sorted.map((_,i)=>i<3?'rgba(211,47,47,0.8)':'rgba(44,82,130,0.6)'), borderWidth: 0, yAxisID: 'y', order: 2 },
+        { label: t('cumPct'), data: cumPcts, type: 'line', borderColor: '#c9a227', borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#c9a227', yAxisID: 'y2', fill: false, tension: 0.2, order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, annotation: {} },
+      scales: {
+        y: { position: 'right', grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: {size:11} } },
+        y2: { position: 'left', min: 0, max: 105, ticks: { callback: v=>v+'%', font:{size:11} }, grid: {display:false} },
+        x: { ticks: { font:{size:11}, maxRotation: 35 } }
+      }
+    }
+  });
+}
+
+function renderCategoryChart(defects, totalDefects) {
+  destroyChart('category');
+  const catDef = {};
+  defects.forEach(r => {
+    const c = r['Defect_Category'] || 'غير مصنف';
+    if (!c || c==='Defect_Category') return;
+    catDef[c] = (catDef[c]||0) + parseNum(r['Defect_Quantity']);
+  });
+  const sorted = Object.entries(catDef).filter(([k,v])=>v>0&&k).sort((a,b)=>b[1]-a[1]);
+  const COLORS = ['#2c5282','#d32f2f','#c9a227','#1b7a3e','#7b3f9c'];
+  charts['category'] = new Chart(document.getElementById('categoryChart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(([c])=>c),
+      datasets: [{ label: t('defects'), data: sorted.map(([,v])=>v), backgroundColor: sorted.map((_,i)=>COLORS[i%COLORS.length]), borderWidth: 0, borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: {display:false} },
+      scales: { x: { grid:{color:'rgba(0,0,0,0.06)'}, ticks:{font:{size:11}} }, y: {ticks:{font:{size:11}}} }
+    }
+  });
+}
+
+function renderFilterCodeChart(defects) {
+  destroyChart('filterCode');
+  const codeDef = {};
+  defects.forEach(r => {
+    const c = r['Filter_Code'] || r['كودالفلتر'];
+    if (!c || c==='Filter_Code') return;
+    codeDef[c] = (codeDef[c]||0) + parseNum(r['Defect_Quantity']);
+  });
+  const sorted = Object.entries(codeDef).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  charts['filterCode'] = new Chart(document.getElementById('filterCodeChart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(([c])=>c),
+      datasets: [{ label: t('defects'), data: sorted.map(([,v])=>v), backgroundColor: 'rgba(44,82,130,0.7)', borderColor:'#2c5282', borderWidth:1, borderRadius:3 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: {display:false} },
+      scales: { x: {ticks:{font:{size:10}}}, y:{ticks:{font:{size:10}}} }
+    }
+  });
+}
+
+function renderDailyRateChart(defects) {
+  destroyChart('dailyRate');
+  const daily = {};
+  defects.forEach(r => {
+    const d = parseDate(r['Date']); if (!d) return;
+    const key = d.toISOString().split('T')[0];
+    if (!daily[key]) daily[key] = {def:0, prod:0};
+    daily[key].def += parseNum(r['Defect_Quantity']);
+    daily[key].prod = parseNum(r['Produced_Quantity']) || daily[key].prod;
+  });
+  const dates = Object.keys(daily).sort().slice(-30);
+  const rates = dates.map(d => daily[d].prod>0 ? +(daily[d].def/daily[d].prod*100).toFixed(2) : 0);
+  const avg = rates.length>0 ? +(rates.reduce((a,b)=>a+b,0)/rates.length).toFixed(2) : 0;
+  charts['dailyRate'] = new Chart(document.getElementById('dailyRateChart'), {
+    type: 'line',
+    data: {
+      labels: dates.map(d=>d.slice(5)),
+      datasets: [
+        { label: t('defectRate')+'%', data: rates, borderColor:'#d32f2f', borderWidth:1.5, pointRadius:2, backgroundColor:'rgba(211,47,47,0.08)', fill:true, tension:0.3 },
+        { label: lang==='ar'?'المتوسط':'Average', data: dates.map(()=>avg), borderColor:'#c9a227', borderWidth:1.5, borderDash:[5,5], pointRadius:0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: {display:false} },
+      scales: {
+        y: { ticks: {callback:v=>v.toFixed(1)+'%', font:{size:10}}, grid:{color:'rgba(0,0,0,0.05)'} },
+        x: { ticks: {font:{size:9}, maxRotation:45, autoSkip:true, maxTicksLimit:10} }
+      }
+    }
+  });
+}
+
+function renderParetoTable(defects) {
+  const typeDef = {};
+  const totalDef = defects.reduce((s,r)=>s+parseNum(r['Defect_Quantity']),0);
+  defects.forEach(r => {
+    const t2 = r['Defect_Type']||'Other';
+    typeDef[t2] = (typeDef[t2]||0) + parseNum(r['Defect_Quantity']);
+  });
+  const sorted = Object.entries(typeDef).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  let cum = 0;
+  const tbody = document.getElementById('paretoTableBody');
+  tbody.innerHTML = sorted.map(([type, count], i) => {
+    const pct = totalDef>0 ? count/totalDef*100 : 0;
+    cum += pct;
+    const rankClass = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    const barW = Math.round(pct);
+    const rowStyle = cum<=80 ? 'background:rgba(211,47,47,0.03)' : '';
+    return `<tr style="${rowStyle}">
+      <td><span class="rank-badge ${rankClass}">${i+1}</span></td>
+      <td style="font-weight:${i<3?'600':'400'}">${type}</td>
+      <td>${count.toLocaleString()}</td>
+      <td><span class="pct-tag">${pct.toFixed(2)}%</span></td>
+      <td><span style="font-weight:${cum<=80?'700':'400'};color:${cum<=80?'#d32f2f':'#5a7288'}">${cum.toFixed(1)}%</span></td>
+      <td style="width:120px"><div class="defect-bar-bg"><div class="defect-bar" style="width:${barW}%"></div></div></td>
+    </tr>`;
+  }).join('');
+}
+
+loadData();
+</script>
+</body>
+</html>
